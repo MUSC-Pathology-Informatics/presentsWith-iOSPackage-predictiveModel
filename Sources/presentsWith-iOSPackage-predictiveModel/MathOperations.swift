@@ -10,6 +10,8 @@ import Foundation
 
 public class MathOperations {
     
+    
+    
     // MARK: - Custom Type: Operation
     
     public enum Operation {
