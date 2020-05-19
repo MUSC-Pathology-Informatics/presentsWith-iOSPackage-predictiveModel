@@ -19,7 +19,7 @@ public class PredictiveModelPackage {
     
     //MARK: - Model
     
-    public var participant_data = ""
+    public var participant_data = [NSDictionary]()
     
     public var model_json = ""
     
@@ -27,7 +27,10 @@ public class PredictiveModelPackage {
     
     public func getFormattedResult() -> String? {
         
-        result = participant_data + " " + model_json
+        //result = participant_data + " " + model_json
+        
+        result = "hey now from the package: " + String(participant_data.count)
+        
         
         return result
     }
