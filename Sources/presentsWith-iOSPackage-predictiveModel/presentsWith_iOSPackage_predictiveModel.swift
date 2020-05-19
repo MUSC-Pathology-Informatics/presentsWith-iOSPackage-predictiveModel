@@ -80,6 +80,7 @@ public class PredictiveModelPackage {
                         for component in component_array {
                             
                             //print(component)
+                            //model stuff goes in here
                             
                             if let component_name = component["name"] {
                                 //print(component_name)
@@ -88,11 +89,46 @@ public class PredictiveModelPackage {
                             if let component_field = component["field"] as? String {
                                 //print(component_field)
                                 
-                                var the_array = [NSDictionary]()
+                                var the_data_array = [NSDictionary]()
                                 
-                                the_array = participant_data.filter({($0["field_name"] as? String) == component_field })
+                                the_data_array = participant_data.filter({($0["field_name"] as? String) == component_field })
                                 
-                                print(the_array)
+                                print(the_data_array)
+                                
+                                var converted_data_array = NSMutableArray()
+                                                   
+                                
+                                for sample in the_data_array {
+                                    var date_time_string = sample["timestamp"] as! String
+                                    
+                                    
+                                    let dateFormatter = DateFormatter()
+                                    dateFormatter.locale = Locale(identifier: "en_US_POSIX") // set locale to reliable US_POSIX
+                                    dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+                                    
+                                    let date = dateFormatter.date(from:date_time_string)!
+                                    
+                                    //let converted_sample = NSDictionary()
+                                   // converted_sample.setValue(sample.even, forKey: <#T##String#>)
+                                    //sample.setValue(date, forKey: "timestamp")
+                                    
+                                    var converted_sample = NSMutableDictionary()
+                                    
+                                    converted_sample.setValue(date, forKey: "timestamp2")
+                                    converted_sample.setValue(sample["event_name"], forKey: "event_name")
+                                    
+                                    converted_data_array.add(converted_sample)
+                                    print(converted_data_array.count)
+                                    
+                                }
+                                
+                                let sortedArray = converted_data_array.sorted {$0["timestamp2"]! < $1["timestamp2"]!}
+                                
+                                for sample in converted_data_array {
+                                    print(sample)
+                                }
+                                
+                                
                                 
                                 
                       
