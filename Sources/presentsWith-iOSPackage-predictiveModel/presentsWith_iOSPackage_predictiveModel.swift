@@ -1,34 +1,63 @@
 import Foundation
 
-/*
-public struct presentsWith_iOSPackage_predictiveModel {
-    public var text = "Hello, World!"
+
+struct Sample {
+    
+    var timestamp:Date
+    var sample_type:String
+    var sample_sub_type:String
+    var sample_id:String
+    var study_id:String
+    var participant_id:String
+    var study_participant_id:String
+    var event_name:String
+    var field_name:String
+    var value_int: integer_t?
+    var value_float: float_t?
+    
+    init(timestamp:Date,sample_type: String, sample_sub_type: String, sample_id:String, study_id:String, participant_id:String, study_participant_id:String, event_name:String, field_name:String) {
+        self.timestamp = timestamp
+        self.sample_type = sample_type
+        self.sample_sub_type = sample_sub_type
+        self.sample_id = sample_id
+        self.study_id = study_id
+        self.participant_id = participant_id
+        self.study_participant_id = study_participant_id
+        self.event_name = event_name
+        self.field_name = field_name
+    }
 }
-*/
+
 
 
 public class PredictiveModelPackage {
-    
-    // MARK: - Init
-    
-    public init() {
         
+    public var participant_data:[NSDictionary]
+    
+    public var model_json:String
+    
+    var participant_samples:[Sample]?
+    
+    
+    public init(participant_data:[NSDictionary],model_json:String) {
+        
+        self.participant_data = participant_data
+        self.model_json = model_json
+        
+        var participant_samples = self.createSamples(participant_date: participant_data)
+
+        //reverse order
+        participant_samples.sort { (lhs: Sample, rhs: Sample) -> Bool in
+            // you can have additional code here
+            return lhs.timestamp > rhs.timestamp
+        }
+        
+        for sample in participant_samples {
+            print(sample)
+        }
     }
     
 
-    
-    //MARK: - Model
-    
-    /* {"timestamp":"2020-05-19 07:57:48","sample_type":"statusPost.healthKit.collector","sample_sub_type":"stepCount","sample_id":"BC5AB3F3-9EC7-46CC-8C9D-2261843BD717","study_id":"(null)-20200306103206492","participant_id":"02cf7f733106c581a9e4d9cffd3e3ec5","study_participant_id":"ACBFD117-70CB-4A86-AB9D-48853927DF69","event_name":"healthkit_collecto_arm_1","field_name":"collector_step_count","value_int":11}
- 
-    */
-    
-    public var participant_data = [NSDictionary]()
-    
-    public var model_json = ""
-    
-    private var result = ""
-    
     
 
     
@@ -36,8 +65,20 @@ public class PredictiveModelPackage {
         
         //result = participant_data + " " + model_json
         
-        result = "hey now from the package: " + String(participant_data.count)
-
+        let data = model_json.data(using: .utf8)!
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        let result = "hey now from the package: " + String(participant_data.count)
+        
+        /*
         var steps = [NSDictionary]()
         
         var heart_rate = [NSDictionary]()
@@ -45,20 +86,7 @@ public class PredictiveModelPackage {
         steps = participant_data.filter({ ($0["field_name"] as? String) == "collector_step_count" })
         
         heart_rate = participant_data.filter({ ($0["field_name"] as? String) == "collector_heart_rate" })
-        
-        
-        
-        
-        //for dict in heart_rate {
-            //print(dict)
-            
-                //print("here is a heart rate")
-            
-        //}
-        
-        
-        let data = model_json.data(using: .utf8)!
-        
+    
         do {
             if let jsonArray = try JSONSerialization.jsonObject(with: data, options : .allowFragments) as? [Dictionary<String,Any>]
             {
@@ -173,15 +201,50 @@ public class PredictiveModelPackage {
         } catch let error as NSError {
             print(error)
         }
+ 
+        */
        
-        
-        
-        
-        
         return result
     }
     
     
+    
+    
+    
+    
+    func createSamples(participant_date:[NSDictionary]) ->[Sample] {
+        
+        var converted_participant_data = [Sample]()
+        
+        for sample in participant_data {
+
+            print(sample)
+            
+            let dateFormatter = DateFormatter()
+            dateFormatter.locale = Locale(identifier: "en_US_POSIX") // set locale to reliable US_POSIX
+            dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        
+            let timestamp_string = sample["timestamp"] as! String
+            let timestamp = dateFormatter.date(from:timestamp_string)!
+            let sample_type = sample["sample_type"] as! String
+            let sample_sub_type = sample["sample_sub_type"] as! String
+            let sample_id = sample["sample_id"] as! String
+            let study_id = sample["study_id"] as! String
+            let participant_id = sample["participant_id"] as! String
+            let study_participant_id = sample["study_participant_id"] as! String
+            let event_name = sample["event_name"] as! String
+            let field_name = sample["field_name"] as! String
+            
+            
+            let new_sample = Sample(timestamp:timestamp,sample_type: sample_type, sample_sub_type: sample_sub_type, sample_id: sample_id, study_id: study_id, participant_id: participant_id, study_participant_id: study_participant_id, event_name: event_name, field_name: field_name)
+
+            converted_participant_data.append(new_sample)
+            
+        }
+        
+        return converted_participant_data
+
+    }
 
 }
 
