@@ -5,17 +5,17 @@ struct Sample {
     
     var timestamp:Date
     var sample_type:String
-    var sample_sub_type:String
-    var sample_id:String
+    var sample_sub_type:String?
+    var sample_id:String?
     var study_id:String
     var participant_id:String
     var study_participant_id:String
     var event_name:String
     var field_name:String
-    var value_int: integer_t?
-    var value_float: float_t?
+    var value_int: Int?
+    var value_float: Double?
     
-    init(timestamp:Date,sample_type: String, sample_sub_type: String, sample_id:String, study_id:String, participant_id:String, study_participant_id:String, event_name:String, field_name:String) {
+    init(timestamp: Date,sample_type: String, sample_sub_type:String?, sample_id:String?, study_id:String, participant_id:String, study_participant_id:String, event_name:String, field_name:String, value_int:Int?, value_float:Double?) {
         self.timestamp = timestamp
         self.sample_type = sample_type
         self.sample_sub_type = sample_sub_type
@@ -25,6 +25,10 @@ struct Sample {
         self.study_participant_id = study_participant_id
         self.event_name = event_name
         self.field_name = field_name
+        self.value_int = value_int
+        self.value_float = value_float
+        
+        
     }
 }
 
@@ -47,14 +51,13 @@ public class PredictiveModelPackage {
         var participant_samples = self.createSamples(participant_date: participant_data)
 
         //reverse order
-        participant_samples.sort { (lhs: Sample, rhs: Sample) -> Bool in
+        //participant_samples.sort { (lhs: Sample, rhs: Sample) -> Bool in
             // you can have additional code here
-            return lhs.timestamp > rhs.timestamp
-        }
+            //return lhs.timestamp > rhs.timestamp
+        //}
         
-        for sample in participant_samples {
-            print(sample)
-        }
+        self.participant_samples = participant_samples
+
     }
     
 
@@ -63,39 +66,18 @@ public class PredictiveModelPackage {
     
     public func getFormattedResult() -> String? {
         
-        //result = participant_data + " " + model_json
-        
-        let data = model_json.data(using: .utf8)!
-        
-        
-        
-        
-        
-        
-        
-        
-        
+        let model_json_data_string = model_json.data(using: .utf8)!
         
         let result = "hey now from the package: " + String(participant_data.count)
-        
-        /*
-        var steps = [NSDictionary]()
-        
-        var heart_rate = [NSDictionary]()
-        
-        steps = participant_data.filter({ ($0["field_name"] as? String) == "collector_step_count" })
-        
-        heart_rate = participant_data.filter({ ($0["field_name"] as? String) == "collector_heart_rate" })
     
         do {
-            if let jsonArray = try JSONSerialization.jsonObject(with: data, options : .allowFragments) as? [Dictionary<String,Any>]
+            if let jsonArray = try JSONSerialization.jsonObject(with: model_json_data_string, options : .allowFragments) as? [Dictionary<String,Any>]
             {
                //print(jsonArray) // use the json here
                 
-                let the_dict = jsonArray[0]
+                let the_dict = jsonArray[0] //single item array - the item is all of out data
                 
-                let results_array = the_dict["results"] as! [NSDictionary]
-                
+                let results_array = the_dict["results"] as! [NSDictionary] // top level
                 
                 for result in results_array {
                     
@@ -107,56 +89,19 @@ public class PredictiveModelPackage {
                         
                         for component in component_array {
                             
-                            //print(component)
-                            //model stuff goes in here
-                            
                             if let component_name = component["name"] {
                                 //print(component_name)
                             }
                             
                             if let component_field = component["field"] as? String {
-                                //print(component_field)
                                 
-                                var the_data_array = [NSDictionary]()
+                                print(component_field)
                                 
-                                the_data_array = participant_data.filter({($0["field_name"] as? String) == component_field })
+                                let the_data:[Sample] = dump(self.participant_samples!.filter({$0.sample_sub_type == component_field}))
                                 
-                                print(the_data_array)
-                                
-                                var converted_data_array = NSMutableArray()
-                                                   
-                                
-                                for sample in the_data_array {
-                                    var date_time_string = sample["timestamp"] as! String
-                                    
-                                    
-                                    let dateFormatter = DateFormatter()
-                                    dateFormatter.locale = Locale(identifier: "en_US_POSIX") // set locale to reliable US_POSIX
-                                    dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-                                    
-                                    let date = dateFormatter.date(from:date_time_string)!
-                                    
-                                    //let converted_sample = NSDictionary()
-                                   // converted_sample.setValue(sample.even, forKey: <#T##String#>)
-                                    //sample.setValue(date, forKey: "timestamp")
-                                    
-                                    var converted_sample = NSMutableDictionary()
-                                    
-                                    converted_sample.setValue(date, forKey: "timestamp2")
-                                    converted_sample.setValue(sample["event_name"], forKey: "event_name")
-                                    
-                                    converted_data_array.add(converted_sample)
-                                    print(converted_data_array.count)
-                                    
-                                }
-                                
-                                let sortedArray = converted_data_array.sorted {$0["timestamp2"]! < $1["timestamp2"]!}
-                                
-                                for sample in converted_data_array {
+                                for sample in the_data {
                                     print(sample)
                                 }
-                                
-                                
                                 
                                 
                       
@@ -202,7 +147,7 @@ public class PredictiveModelPackage {
             print(error)
         }
  
-        */
+        
        
         return result
     }
@@ -216,29 +161,58 @@ public class PredictiveModelPackage {
         
         var converted_participant_data = [Sample]()
         
-        for sample in participant_data {
-
-            print(sample)
-            
-            let dateFormatter = DateFormatter()
-            dateFormatter.locale = Locale(identifier: "en_US_POSIX") // set locale to reliable US_POSIX
-            dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX") // set locale to reliable US_POSIX
         
-            let timestamp_string = sample["timestamp"] as! String
-            let timestamp = dateFormatter.date(from:timestamp_string)!
-            let sample_type = sample["sample_type"] as! String
-            let sample_sub_type = sample["sample_sub_type"] as! String
-            let sample_id = sample["sample_id"] as! String
-            let study_id = sample["study_id"] as! String
-            let participant_id = sample["participant_id"] as! String
-            let study_participant_id = sample["study_participant_id"] as! String
-            let event_name = sample["event_name"] as! String
-            let field_name = sample["field_name"] as! String
+        for sample in participant_data {
             
-            
-            let new_sample = Sample(timestamp:timestamp,sample_type: sample_type, sample_sub_type: sample_sub_type, sample_id: sample_id, study_id: study_id, participant_id: participant_id, study_participant_id: study_participant_id, event_name: event_name, field_name: field_name)
+            print(sample)
+        
+            if let timestamp_string = sample["timestamp"] as? String {
+  
+                let sample_type = sample["sample_type"] as! String
+                let study_id = sample["study_id"] as! String
+                let participant_id = sample["participant_id"] as! String
+                let study_participant_id = sample["study_participant_id"] as! String
+                let event_name = sample["event_name"] as! String
+                let field_name = sample["field_name"] as! String
+                
+                
+                
+                if sample_type == "survey" {
+                    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+                } else {
+                    dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+                }
+                
+                let timestamp:Date? = dateFormatter.date(from:timestamp_string)
+        
+                var sample_sub_type:String?
+                if let my_sample_sub_type = sample["sample_sub_type"] as? String {
+                    sample_sub_type = my_sample_sub_type
+                }
+                
+                var sample_id:String?
+                if let my_sample_id = sample["sample_id"] as? String {
+                    sample_id = my_sample_id
+                }
+                
+                var value_int:Int?
+                if let my_value_int = sample["value_int"] as? Int {
+                    value_int = my_value_int
+                }
+                
+                var value_float:Double?
+                if let my_value_float = sample["value_float"] as? Double {
+                    value_float = my_value_float
+                }
+                
+                
+                let new_sample = Sample(timestamp: timestamp!,sample_type: sample_type, sample_sub_type: sample_sub_type, sample_id: sample_id, study_id: study_id, participant_id: participant_id, study_participant_id: study_participant_id, event_name: event_name, field_name: field_name, value_int: value_int, value_float: value_float)
 
-            converted_participant_data.append(new_sample)
+                converted_participant_data.append(new_sample)
+            }
+            
             
         }
         
