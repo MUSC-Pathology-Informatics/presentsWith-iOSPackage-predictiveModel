@@ -51,10 +51,10 @@ public class PredictiveModelPackage {
         var participant_samples = self.createSamples(participant_date: participant_data)
 
         //reverse order
-        //participant_samples.sort { (lhs: Sample, rhs: Sample) -> Bool in
+        participant_samples.sort { (lhs: Sample, rhs: Sample) -> Bool in
             // you can have additional code here
-            //return lhs.timestamp > rhs.timestamp
-        //}
+            return lhs.timestamp > rhs.timestamp
+        }
         
         self.participant_samples = participant_samples
 
@@ -89,6 +89,8 @@ public class PredictiveModelPackage {
                         
                         for component in component_array {
                             
+                            var component_data:[Sample]?
+                            
                             if let component_name = component["name"] {
                                 //print(component_name)
                             }
@@ -96,13 +98,13 @@ public class PredictiveModelPackage {
                             
                             if let component_sample_sub_type = component["sample_sub_type"] as? String {
                                 
-                                print(component_sample_sub_type)
+                                //print(component_sample_sub_type)
                                 
-                                let the_data:[Sample] = dump(self.participant_samples!.filter({$0.sample_sub_type == component_sample_sub_type}))
+                                component_data = dump(self.participant_samples!.filter({$0.sample_sub_type == component_sample_sub_type}))
                                 
-                                for sample in the_data {
-                                    print(sample)
-                                }
+                                //for sample in component_data! {
+                                    //print(sample)
+                                //}
                             }
                             
                             
@@ -110,11 +112,8 @@ public class PredictiveModelPackage {
                                 
                                 print(component_field)
                                 
-                                let the_data:[Sample] = dump(self.participant_samples!.filter({$0.sample_sub_type == component_field}))
+                                component_data = dump(self.participant_samples!.filter({$0.sample_sub_type == component_field}))
                                 
-                                for sample in the_data {
-                                    print(sample)
-                                }
                             }
                             
                             
@@ -122,22 +121,93 @@ public class PredictiveModelPackage {
                             if let component_models = component["models"] as? [NSDictionary] {
                                 
                                 for component_model in component_models {
-                                    print(component_model)
+                                    //print(component_model)
                                                                    
-                                    var sample_count:Int?
-                                    var sample_duration:String?
-                                    var sample_frequency:String?
+                                    var group_count:Int?
+                                    var group_duration:String?
+                                    var group_frequency:String?
+                                    var requirements_array:[String]?
                                        
-                                    if let model_sample_count = component_model["sample_count"] as? Int { sample_count = model_sample_count }
+                                    if let model_group_count = component_model["group_count"] as? Int { group_count = model_group_count }
                                     
-                                    if let model_sample_duration = component_model["sample_duration"] as? String { sample_duration = model_sample_duration }
+                                    if let model_group_duration = component_model["group_duration"] as? String { group_duration = model_group_duration }
                                     
-                                    if let model_sample_frequency = component_model["sample_frequency"] as? String { sample_frequency = model_sample_frequency }
+                                    if let model_group_frequency = component_model["group_frequency"] as? String { group_frequency = model_group_frequency }
                                     
-                                    print(sample_count)
-                                    print(sample_duration)
-                                    print(sample_frequency)
+                                    if let model_requirements_array = component_model["requirements"] as? [String] {
+                                        requirements_array = model_requirements_array
+                                        
+                                    }
+                                    
+                                    print(requirements_array)
+                                    
+                                    
+                                    //print(group_count)
+                                    //print(group_duration)
+                                    //print(group_frequency)
+                                    
+                                    
+                                    // NOW EXECUTE THE MODEL
+                                    
+                                    if let model_data = component_data {
+                                        
+                                        for i in 0..<group_count! {
+                                            // Do stuff...
+                                            print("get a groups of samples!" + String(i))
+                                            
+                                            let startDate = Calendar.current.date(byAdding: .day,value: -i - 1,to: Date())
+                                            let endDate = Calendar.current.date(byAdding: .day,value: -i,to: Date())
+                                            print(startDate)
+                                            print(endDate)
+                                            
+                                            
+                                            let group_data_remove_end:[Sample] = dump(model_data.filter({$0.timestamp < endDate!}))
+                                            let group_data:[Sample] = dump(group_data_remove_end.filter({$0.timestamp > startDate!}))
+                                            
+                                            for sample in group_data {
+                                                print(sample)
+                                                
+                                                if requirements_array != nil {
+                                                    for requirement in requirements_array! {
+                                                    
+                                                        if let value_float = sample.value_float {
+                                                            print(value_float)
+                                                            
+                                                            print(requirement)
+                                                            
+                                                            let requirement_string_array = requirement.components(separatedBy: " ")
+                                                            
+                                                            
+                                                            
+                                                            //var logicalExpression = "sample.value_float > 101"
+                                                            
+                                                            //print(logicalExpression)
+                                                            
+                                                            //let predicate = NSPredicate(format: logicalExpression)
+                                                            var result = predicate.evaluate(with: "") as Bool
+                                                            
+                                                            if (result) {
+                                                                print(" i should get a transform!")
+                                                            } else {
+                                                                print(" no transform!")
+                                                            }
+                                                            
+                                                            
+                                                            
+                                                        }
+                                                    }
+                                                }
+                                                
+                                            }
+                                            
 
+                                        }
+                                        
+                                    }
+                                    
+                                    
+                                    
+                          
                                 }
                                 
                             }
@@ -188,7 +258,7 @@ public class PredictiveModelPackage {
         
         for sample in participant_data {
             
-            print(sample)
+            //print(sample)
         
             if let timestamp_string = sample["timestamp"] as? String {
   
