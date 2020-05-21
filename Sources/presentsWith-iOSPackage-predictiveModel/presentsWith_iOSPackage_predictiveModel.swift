@@ -93,6 +93,19 @@ public class PredictiveModelPackage {
                                 //print(component_name)
                             }
                             
+                            
+                            if let component_sample_sub_type = component["sample_sub_type"] as? String {
+                                
+                                print(component_sample_sub_type)
+                                
+                                let the_data:[Sample] = dump(self.participant_samples!.filter({$0.sample_sub_type == component_sample_sub_type}))
+                                
+                                for sample in the_data {
+                                    print(sample)
+                                }
+                            }
+                            
+                            
                             if let component_field = component["field"] as? String {
                                 
                                 print(component_field)
@@ -102,27 +115,36 @@ public class PredictiveModelPackage {
                                 for sample in the_data {
                                     print(sample)
                                 }
-                                
-                                
-                      
                             }
                             
                             
                             
-                            if let component_model = component["model"] {
-                                print(component_model)
+                            if let component_models = component["models"] as? [NSDictionary] {
+                                
+                                for component_model in component_models {
+                                    print(component_model)
+                                                                   
+                                    var sample_count:Int?
+                                    var sample_duration:String?
+                                    var sample_frequency:String?
+                                       
+                                    if let model_sample_count = component_model["sample_count"] as? Int { sample_count = model_sample_count }
+                                    
+                                    if let model_sample_duration = component_model["sample_duration"] as? String { sample_duration = model_sample_duration }
+                                    
+                                    if let model_sample_frequency = component_model["sample_frequency"] as? String { sample_frequency = model_sample_frequency }
+                                    
+                                    print(sample_count)
+                                    print(sample_duration)
+                                    print(sample_frequency)
+
+                                }
                                 
                             }
-                            
-                            
-                            
+                                
                         }
-                        
-                        
                     }
-                    
-                    
-                    
+
                 }
 
                 
